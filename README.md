@@ -139,7 +139,7 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
      enp3s0f0  no wireless extensions.
      ```
 
-- Connect to Wi-fi Netrwork
+- Manual Connect to Wi-fi Netrwork
 
   1. Then find your wireless network name by scanning nearby networks with the command below. Replace `wlp2s0` with your own wireless interface name. ESSID is the network name identifier.
 
@@ -260,6 +260,133 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
       sudo dhclient wlp2s0 -r
       ```
 
+- Setup Auto-Connect to Wi-fi At Boot Time
+
+  To automatically connect to wireless network at boot time, we need to edit the `wpa_supplicant.service` file. It’s a good idea to copy the file from `/lib/systemd/system/` directory to `/etc/systemd/system/` directory, then edit the file content, because we don’t want a newer version of wpa_supplicant to override our modifications.
+
+  1. Copy `wpa_supplicant.service` from lib folder
+
+     ```shell
+     sudo cp /lib/systemd/system/wpa_supplicant.service /etc/systemd/system/wpa_supplicant.service
+     ```
+
+  2. Edit the file with a command-line text editor, such as VI, Nano.
+
+     ```shell
+     sudo vi /etc/systemd/system/wpa_supplicant.service
+     ```
+
+     Find the following line.
+
+     ```properties
+     [Unit]
+     Description=WPA supplicant
+     Before=network.target
+     After=dbus.service
+     Wants=network.target
+     IgnoreOnIsolate=true
+
+     [Service]
+     Type=dbus
+     BusName=fi.w1.wpa_supplicant1
+     ExecStart=/sbin/wpa_supplicant -u -s -O /run/wpa_supplicant # <--- Line to be change
+
+     [Install]
+     WantedBy=multi-user.target
+     Alias=dbus-fi.w1.wpa_supplicant1.service
+     ```
+
+  3. Change it to the following.
+  
+     Here we added the configuration file and the wireless interface name to the ExecStart command.
+
+     ```properties
+     ExecStart=/sbin/wpa_supplicant -u -s -c /etc/wpa_supplicant.conf -i wlp4s0
+     ```
+
+     It’s recommended to always try to restart wpa_supplicant when failure is detected. Add the following right below the ExecStart line.
+
+     ```properties
+     Restart=always
+     ```
+
+     If you can find the following line in this file, comment it out (Add the # character at the beginning of the line).
+
+     ```properties
+     Alias=dbus-fi.w1.wpa_supplicant1.service
+     ```
+
+     Save and close the file. Updated version should be
+
+     ```properties
+     [Unit]
+     Description=WPA supplicant
+     Before=network.target
+     After=dbus.service
+     Wants=network.target
+     IgnoreOnIsolate=true
+     
+     [Service]
+     Type=dbus
+     BusName=fi.w1.wpa_supplicant1
+     ExecStart=/sbin/wpa_supplicant -u -s -c /etc/wpa_supplicant.conf -i wlp2s0
+     Restart=always
+     
+     [Install]
+     WantedBy=multi-user.target
+     #Alias=dbus-fi.w1.wpa_supplicant1.service
+     ```
+
+  4. Then reload systemd and Enable wpa_supplicant service to start at boot time.
+
+     ```shell
+     sudo systemctl daemon-reload
+     ```
+
+     Enable wpa_supplicant service to start at boot time.
+
+     ```shell
+     sudo systemctl enable wpa_supplicant.service
+     ```
+
+  5. Start dhclient at boot time to obtain a private IP address from DHCP server. This can be achieved by creating a systemd service unit for dhclient.
+
+     Edit `dhclient.service`
+
+     ```shell
+     sudo vi /etc/systemd/system/dhclient.service
+     ```
+
+     Put the following text into the file.
+
+     ```shell
+     [Unit]
+     Description= DHCP Client
+     Before=network.target
+     After=wpa_supplicant.service
+
+     [Service]
+     Type=forking
+     ExecStart=/sbin/dhclient wlp4s0 -v
+     ExecStop=/sbin/dhclient wlp4s0 -r
+     Restart=always
+     
+     [Install]
+     WantedBy=multi-user.target
+     ```
+
+     Save and close the file. Then enable this service.
+
+     ```shell
+     sudo systemctl enable dhclient.service
+     ```
+
+- Restart Ubuntu Server
+
+  ```shell
+  sudo shutdown -r now
+  ```
+  
 - Start Up command (Temporary)
 
   ```shell
