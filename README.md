@@ -16,7 +16,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
      ifconfig
- 
+     ```
+  
+     ```shell
      Command 'ifconfig' not found, but ca be installed with
  
      sudo apt install net-tools
@@ -32,7 +34,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
       ifconfig
-
+     ```
+  
+     ```shell
       enp3s0f0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
             inet 192.168.2.2  netmask 255.255.255.0  broadcast 192.168.2.255
             inet6 fd5a:3360:ca7:ece1:3ac9:86ff:fe04:e157  prefixlen 64  scopeid 0x0<global>
@@ -54,17 +58,106 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
             TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
      ```
 
-  4. install driver
+  4. Run `iwconfig` command  it's should be command not found
+
+     ```shell
+     iwconfig
+     ```
+  
+     ```shell
+     Command 'iwconfig' not found, but can be installed with:
+
+     sudo apt install wireless-tools
+     ```
+
+  5. install `wireless-tools` to enabled `iwconfig` command
+
+     ```shell
+     sudo apt install wireless-tools
+     ```
+
+  6. Run `iwconfig` command to find the name of your wireless interface. it's still not found wireless interface
+  
+     ```shell
+     iwconfig
+     ```
+  
+     ```shell
+     enp3s0f0  no wireless extensions.
+
+     lo        no wireless extensions.
+     ```
+
+  7. install BCM Wifi driver for Mac-Mini
 
      ```shell
      sudo apt-get install --reinstall bcmwl-kernel-source
      ```
 
-  5. you will see wireless information when run `ifconfig` command
+  8. Run `iwconfig` command again. it should be found wireless interface
   
      ```shell
-      ifconfig
+     iwconfig
+     ```
+  
+     ```shell
+     enp3s0f0  no wireless extensions.
 
+     wlp2s0    IEEE 802.11  ESSID:off/any  
+               Mode:Managed  Access Point: Not-Associated   
+               Retry short limit:7   RTS thr:off   Fragment thr:off
+               Power Management:off
+          
+     lo        no wireless extensions.
+     ```
+
+  9. `wlan0` used to be a common name for wireless network interface on Linux systems without Systemd. Because Ubuntu uses Systemd, you are going to find that your wireless network interface is named something like `wlp2s0`. You can also see that it’s not associated with any access point right now.
+
+     ```shell
+     iwconfig
+     ```
+  
+     ```shell
+     wlp2s0    IEEE 802.11  ESSID:off/any  
+               Mode:Managed  [Access Point: Not-Associated]
+               Retry short limit:7   RTS thr:off   Fragment thr:off
+               Power Management:off
+     lo        no wireless extensions.
+
+     enp3s0f0  no wireless extensions.
+     ```
+
+  10. Establish a Wireless Connection. First, determine the name of the WiFi interface:
+
+      ```shell
+      nmcli d
+      ```
+
+      ```shell
+      Command 'nmcli' not found, but can be installed with:
+      
+      sudo apt install network-manager
+      ```
+
+  11. Install Network-Manager to enable `nmcli` commands.
+
+      ```shell
+      sudo apt install network-manager
+      ```
+
+  12. Make sure the WiFi radio is on (which is its default state):
+
+      ```shell
+      nmcli r wifi on
+      ```
+
+  13. you will see wireless information when run `ifconfig` command
+  
+      ```shell
+      ifconfig
+      ```
+
+      ```shell
       enp3s0f0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
             inet 192.168.2.2  netmask 255.255.255.0  broadcast 192.168.2.255
             inet6 fd5a:3360:ca7:ece1:3ac9:86ff:fe04:e157  prefixlen 64  scopeid 0x0<global>
@@ -92,52 +185,7 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
             TX packets 0  bytes 0 (0.0 B)
             TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
             device interrupt 18
-     ```
-
-  6. Run `iwconfig` command  it's should be command not found
-
-     ```shell
-     iwconfig
-
-     Command 'iwconfig' not found, but can be installed with:
-
-     sudo apt install wireless-tools
-     ```
-
-  7. install `wireless-tools` to enabled `iwconfig` command
-
-     ```shell
-     sudo apt install net-tools
-     ```
-
-  8. Run `iwconfig` command to find the name of your wireless interface.
-  
-     ```shell
-  
-     iwconfig
-  
-     wlp2s0    IEEE 802.11  ESSID:off/any  
-               Mode:Managed  Access Point: Not-Associated   
-               Retry short limit:7   RTS thr:off   Fragment thr:off
-               Power Management:off
-     lo        no wireless extensions.
-
-     enp3s0f0  no wireless extensions.
-     ```
-
-  9. `wlan0` used to be a common name for wireless network interface on Linux systems without Systemd. Because Ubuntu uses Systemd, you are going to find that your wireless network interface is named something like `wlp2s0`. You can also see that it’s not associated with any access point right now.
-
-     ```shell
-     iwconfig
-  
-     wlp2s0    IEEE 802.11  ESSID:off/any  
-               Mode:Managed  [Access Point: Not-Associated]
-               Retry short limit:7   RTS thr:off   Fragment thr:off
-               Power Management:off
-     lo        no wireless extensions.
-
-     enp3s0f0  no wireless extensions.
-     ```
+      ```
 
 - Manual Connect to Wi-fi Netrwork
 
@@ -145,6 +193,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
      sudo iwlist wlp2s0 scan | grep ESSID
+     ```
+
+     ```shell
          ESSID:"WIFI_Network_Home"
          ESSID:"WIFI_Network_Home_5g"
      ```
@@ -159,6 +210,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
      wpa_passphrase ${your-ESSID} ${your-wifi-passphrase} | sudo tee /etc/wpa_supplicant.conf
+     ```
+
+     ```shell
      network={
         ssid="${your-ESSID}"
         #psk="${your-wifi-passphrase}"
@@ -192,7 +246,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
      iwconfig
+     ```
 
+     ```shell
      wlp2s0    IEEE 802.11  ESSID:"${your-ESSID}"  
                Mode:Managed  Frequency:5.2 GHz  Access Point: 70:F8:2B:CF:C4:D5   
                Retry short limit:7   RTS thr:off   Fragment thr:off
@@ -213,7 +269,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
      sudo systemctl disable NetworkManager-wait-online NetworkManager-dispatcher NetworkManager
+     ```
 
+     ```shell
      Removed /etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service.
      Removed /etc/systemd/system/multi-user.target.wants/NetworkManager.service.
      Removed /etc/systemd/system/network-online.target.wants/NetworkManager-wait-online.service.
@@ -222,7 +280,11 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
   8. By default, wpa_supplicant runs in the foreground. If the connection is completed, then open up another terminal window and run
 
      ```shell
-     wlp2s0    IEEE 802.11  ESSID:"${your-ESSID}"  
+     iwconfig
+     ```
+
+     ```shell
+     wlp2s0    IEEE 802.11  ESSID:off/any  
                Mode:Managed  Frequency:5.2 GHz  Access Point: 70:F8:2B:CF:C4:D5   
                Retry short limit:7   RTS thr:off   Fragment thr:off
                Power Management:off
@@ -238,6 +300,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
       ```shell
       sudo wpa_supplicant -B -c /etc/wpa_supplicant.conf -i wlp2s0
+      ```
+
+      ```shell
       Successfully initialized wpa_supplicant
       ```
 
@@ -251,7 +316,21 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
       ```shell
       ip addr show wlp2s0
+      ```
+
       ubuntu dhclient obtain private ip addres
+
+      ```shell
+      3: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+         link/ether 78:9f:70:79:d3:48 brd ff:ff:ff:ff:ff:ff
+         inet 192.168.1.57/24 brd 192.168.1.255 scope global dynamic wlp2s0
+            valid_lft 86375sec preferred_lft 86375sec
+         inet6 2001:fb1:20:dc97:f035:d516:fdc0:962d/64 scope global temporary dynamic 
+            valid_lft 259153sec preferred_lft 86037sec
+         inet6 2001:fb1:20:dc97:7a9f:70ff:fe79:d348/64 scope global dynamic mngtmpaddr 
+            valid_lft 259153sec preferred_lft 172753sec
+         inet6 fe80::7a9f:70ff:fe79:d348/64 scope link 
+            valid_lft forever preferred_lft forever
       ```
 
       `Note:` Now you can access the Internet. To release the private IP address, run
@@ -367,8 +446,8 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      [Service]
      Type=forking
-     ExecStart=/sbin/dhclient wlp4s0 -v
-     ExecStop=/sbin/dhclient wlp4s0 -r
+     ExecStart=/sbin/dhclient wlp2s0 -v
+     ExecStop=/sbin/dhclient wlp2s0 -r
      Restart=always
      
      [Install]
@@ -393,7 +472,9 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
 
      ```shell
      ifconfig
+     ```
 
+     ```shell
      enp3s0f0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
            ether 38:c9:86:04:e1:57  txqueuelen 1000  (Ethernet)
            RX packets 0  bytes 0 (0.0 B)
