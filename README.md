@@ -381,25 +381,76 @@ reference [Install Ubuntu Server](https://ubuntu.com/tutorials/install-ubuntu-se
      sudo systemctl enable dhclient.service
      ```
 
-- Restart Ubuntu Server
+  6. Restart Ubuntu Server to Take effect
 
-  ```shell
-  sudo shutdown -r now
-  ```
+     ```shell
+     sudo shutdown -r now
+     ```
   
-- Start Up command (Temporary)
+- Reduced Boot time when `A start job is running for Wait for Network to be Configured` still waiting 2 minutes
 
-  ```shell
-  sudo wpa_supplicant -B -c /etc/wpa_supplicant.conf -i wlp2s0
-  sudo dhclient wlp2s0
-  ip addr show wlp2s0
-  ```
+  1. Run `ifconfig` command to find the name of your ethernet interface.
+
+     ```shell
+     ifconfig
+
+     enp3s0f0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+           ether 38:c9:86:04:e1:57  txqueuelen 1000  (Ethernet)
+           RX packets 0  bytes 0 (0.0 B)
+           RX errors 0  dropped 0  overruns 0  frame 0
+           TX packets 0  bytes 0 (0.0 B)
+           TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+           device interrupt 19  
+
+     lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+           inet 127.0.0.1  netmask 255.0.0.0
+           inet6 ::1  prefixlen 128  scopeid 0x10<host>
+           loop  txqueuelen 1000  (Local Loopback)
+           RX packets 516  bytes 37252 (37.2 KB)
+           RX errors 0  dropped 0  overruns 0  frame 0
+           TX packets 516  bytes 37252 (37.2 KB)
+           TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+     wlp2s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+     ...
+     ```
+
+  2. Run `ls` to find yaml configuration file in `/etc/netplan`
+
+     ```shell
+     ls -lt /etc/netplan
+     
+     total 4
+     -rw-r--r-- 1 root root 140 Oct  7 09:27 00-installer-config.yaml
+     ```
+  
+  3. Update internet config by add `optional` into ethernet interface
+
+     ```shell
+     sudo vi /etc/netplan/00-installer-config.yaml
+     ```
+
+     ```yaml
+     network:
+        ethernets:
+           enp3s0f0:  # <-- Network interface name
+                dhcp4: true
+                optional: true # <-- add optional
+        version: 2
+     ```
+
+  4. Restart Ubuntu Server to Take effect
+
+     ```shell
+     sudo shutdown -r now
+     ```
 
 - reference
 
   - [Configure WiFi Connections](https://ubuntu.com/core/docs/networkmanager/configure-wifi-connections)
   - [Installing Broadcom Wireless Drivers for "Chip ID": BCM4360, "PCI-ID": 14e4:43a0 (rev 03) on Ubuntu 14.04](https://askubuntu.com/questions/592555/installing-broadcom-wireless-drivers-for-chip-id-bcm4360-pci-id-14e443a0)
   - [Connect to Wi-Fi From Terminal on Ubuntu 18.04/20.04 with WPA Supplicant](https://www.linuxbabe.com/ubuntu/connect-to-wi-fi-from-terminal-on-ubuntu-18-04-19-04-with-wpa-supplicant)
+  - [แก้ไขบู๊ต Ubuntu 18.04 ช้า ค้างที่ข้อความ A start job is running for Wait for Network to be Configured](https://spalinux.com/2019/01/fix-slow-boot-ubuntu-18-04-with-a-start-job-is-running-for-wait-for-network-to-be-configured)
 
 - may be help
 
