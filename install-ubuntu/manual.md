@@ -2,9 +2,11 @@
 
 ## Overviews
 
-- [Create Ubuntu Installer Boot Disk](#create_ubuntu_installer_boot_disk)
-- [Install Ubuntu Server](#install_ubuntu_server)
-- [Setup Wireless Network](#setup_wireless_network)
+- [Manual Install Ubuntu (Mac-mini)](#manual-install-ubuntu-mac-mini)
+  - [Overviews](#overviews)
+  - [Create Ubuntu Installer Boot Disk](#create-ubuntu-installer-boot-disk)
+  - [Install Ubuntu Server](#install-ubuntu-server)
+  - [Setup Wireless Network](#setup-wireless-network)
 
 ## Create Ubuntu Installer Boot Disk
 

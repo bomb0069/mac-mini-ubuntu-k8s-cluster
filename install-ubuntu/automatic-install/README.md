@@ -221,7 +221,171 @@
 
 ## Install Ubuntu Server
 
+   ขั้นตอนนี้แค่เสียบ USB เข้าไปใน Mac-Mini แล้ว แล้วตอนเปิดเครื่องให้กดปุ่ม `option` ค้างไว้ จนกว่าจะแสดงหน้าจอตามรูป ให้เลือก `EFI Boot` ที่เป็นสัญลักษณ์ USB (เครื่องผมเป็นสีเหลือง ๆ ตามรูป)
+
+   ![เลือก Boot from USB](https://ubuntucommunity.s3.dualstack.us-east-2.amazonaws.com/original/2X/6/63e0ff00c2583eda7b91572a939fe05695d6afc7.png)
+
+   หลังจาก Install เสร็จ ให้เอา USB ออกแล้ว Restart เครื่องก็จะได้ Ubuntu Server บน Mac-mini ของเราแล้ว
+
 ## Setup Wireless Network
+
+- Disable NetworkManager
+
+  1. Stop Network Manager with the following command
+
+     ```shell
+     sudo systemctl stop NetworkManager
+     ```
+
+  2. Disable NetworkManager auto-start at boot time by executing the following command.
+
+     ```shell
+     sudo systemctl disable NetworkManager-wait-online NetworkManager-dispatcher NetworkManager
+     ```
+
+     ```shell
+     Removed /etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service.
+     Removed /etc/systemd/system/multi-user.target.wants/NetworkManager.service.
+     Removed /etc/systemd/system/network-online.target.wants/NetworkManager-wait-online.service.
+     ```
+
+- Config WPA Supplicant
+  
+  1. We need to create a file named `wpa_supplicant.conf` using the `wpa_passphrase` utility. `wpa_supplicant.conf` is the configuration file describing all networks that the user wants the computer to connect to. Run the following command to create this file. Replace ESSID and Wi-Fi passphrase with your own.
+
+     ```shell
+     wpa_passphrase ${your-ESSID} ${your-wifi-passphrase} | sudo tee /etc/wpa_supplicant.conf
+     ```
+
+     ```shell
+     network={
+        ssid="${your-ESSID}"
+        #psk="${your-wifi-passphrase}"
+        psk=24f508ef2946032b65ed981fae766c657cff471945086abb55c9a02d09a4bf08
+     }
+     ```
+
+  2. run WPA Supplicant in the background
+
+     ```shell
+     sudo wpa_supplicant -B -c /etc/wpa_supplicant.conf -i wlp2s0
+     ```
+
+     ```shell
+     Successfully initialized wpa_supplicant
+     ```
+
+  3. run `iwconfig` to check wifi connection
+
+     ```shell
+     iwconfig
+     ```
+
+     ```shell
+     wlp2s0    IEEE 802.11  ESSID:"${your-ESSID}"  
+               Mode:Managed  Frequency:5.2 GHz  Access Point: 70:F8:2B:CF:C4:D5   
+               Retry short limit:7   RTS thr:off   Fragment thr:off
+               Power Management:off
+
+     lo        no wireless extensions.
+
+     enp3s0f0  no wireless extensions.
+     ```
+
+- Setup Auto-Connect to Wi-fi At Boot Time
+
+  To automatically connect to wireless network at boot time, we need to edit the `wpa_supplicant.service` file. It’s a good idea to copy the file from `/lib/systemd/system/` directory to `/etc/systemd/system/` directory, then edit the file content, because we don’t want a newer version of wpa_supplicant to override our modifications.
+
+  1. Copy `wpa_supplicant.service` from lib folder
+
+     ```shell
+     sudo cp /lib/systemd/system/wpa_supplicant.service /etc/systemd/system/wpa_supplicant.service
+     ```
+
+  2. Edit the file with a command-line text editor, such as VI, Nano.
+
+     ```shell
+     sudo vi /etc/systemd/system/wpa_supplicant.service
+     ```
+
+     Find the following line.
+
+     ```properties
+     [Unit]
+     Description=WPA supplicant
+     Before=network.target
+     After=dbus.service
+     Wants=network.target
+     IgnoreOnIsolate=true
+
+     [Service]
+     Type=dbus
+     BusName=fi.w1.wpa_supplicant1
+     ExecStart=/sbin/wpa_supplicant -u -s -O /run/wpa_supplicant # <--- Line to be change
+
+     [Install]
+     WantedBy=multi-user.target
+     Alias=dbus-fi.w1.wpa_supplicant1.service
+     ```
+
+  3. Change it to the following.
+  
+     Here we added the configuration file and the wireless interface name to the ExecStart command.
+
+     ```properties
+     ExecStart=/sbin/wpa_supplicant -u -s -c /etc/wpa_supplicant.conf -i wlp2s0
+     ```
+
+     It’s recommended to always try to restart wpa_supplicant when failure is detected. Add the following right below the ExecStart line.
+
+     ```properties
+     Restart=always
+     ```
+
+     If you can find the following line in this file, comment it out (Add the # character at the beginning of the line).
+
+     ```properties
+     Alias=dbus-fi.w1.wpa_supplicant1.service
+     ```
+
+     Save and close the file. Updated version should be
+
+     ```properties
+     [Unit]
+     Description=WPA supplicant
+     Before=network.target
+     After=dbus.service
+     Wants=network.target
+     IgnoreOnIsolate=true
+     
+     [Service]
+     Type=dbus
+     BusName=fi.w1.wpa_supplicant1
+     ExecStart=/sbin/wpa_supplicant -u -s -c /etc/wpa_supplicant.conf -i wlp2s0
+     Restart=always
+     
+     [Install]
+     WantedBy=multi-user.target
+     #Alias=dbus-fi.w1.wpa_supplicant1.service
+     ```
+
+  4. Then reload systemd and Enable wpa_supplicant service to start at boot time.
+
+     ```shell
+     sudo systemctl daemon-reload
+     ```
+
+     Enable wpa_supplicant service to start at boot time.
+
+     ```shell
+     sudo systemctl enable wpa_supplicant.service
+     ```
+
+  5. Restart Ubuntu Server to Take effect
+
+     ```shell
+     sudo shutdown -r now
+     ```
 
 ## Reference
 
@@ -231,3 +395,4 @@
 - [Automated Server Install Quickstart - covertsh's comment](https://discourse.ubuntu.com/t/automated-server-install-quickstart/16614/28)
 - [How do I install wpa-supplicant on an offline server?](https://askubuntu.com/questions/503397/how-do-i-install-wpa-supplicant-on-an-offline-server)
 - [Ubuntu Server Netplan for Wifi and Ethernet](https://askubuntu.com/questions/1042789/ubuntu-server-netplan-for-wifi-and-ethernet)
+- [Ubuntu Server 20.04 Autoinstall](https://superuser.com/questions/1556083/ubuntu-server-20-04-autoinstall)
