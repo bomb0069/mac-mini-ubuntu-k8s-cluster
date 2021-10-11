@@ -1,0 +1,31 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ${SERVER_NAME}
+    username: ${USER_NAME}
+    password: ${PASSWORD}
+  ssh:
+    install-server: true
+    authorized-keys:
+      - ${SSH-PUBLIC-KEY}
+    allow-pw: no
+  storage:
+    layout:
+      name: lvm
+  network:
+    network:
+      version: 2
+      ethernets:
+        enp3s0f0:
+          dhcp4: yes
+          optional: yes
+        wlp2s0:
+          dhcp4: yes
+          optional: yes
+  packages:
+    - net-tools 
+    - wireless-tools
+    - network-manager
+    - wpasupplicant
+    - bcmwl-kernel-source

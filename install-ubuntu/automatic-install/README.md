@@ -46,6 +46,8 @@
 
   1. เปิด file /boot/grub/grub.conf
 
+     ![/boot/grub/grub.conf](./images/file-boot-grub-grub-conf.png)
+
      ```config
      if loadfont /boot/grub/font.pf2 ; then
          set gfxmode=auto
@@ -113,6 +115,109 @@
   4. Save File grub.conf
 
   หมายเหตุ: ตัวอย่างของ `grub.conf` สามารถดูได้จาก [./boot/grub/grub.conf](./boot/grub/grub.cfg) ใน Repo นี้
+
+- สร้าง File Automatic Installs Config
+  
+  1. สร้าง File `user-data` และ `meta-data` ใน `/autoinst` ของ USB Stick
+
+     ![File user-data, meta-data ใน /autoinst](./images/file-autoinst-user-and-meta-data.png)
+  
+  2. เปิด File `/autoinst/user-data` เพื่อกำหนดรายละเอียดของการ Install
+
+  3. ระบุ Hostname, Username และ Password ทีใช้ในการ Login ในกรณีนี้ ผมจะใช้ Default ของ Ubuntu เป็น `hostname=ubuntu-server`, `username=ubuntu` และ `password=ubuntu`
+
+     ```yaml
+     #cloud-config
+     autoinstall:
+     version: 1
+     identity:
+       hostname: ubuntu-server
+       username: ubuntu
+       password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+     ```
+
+     หมายเหตุ: password เป็น `ubuntu` แต่เวลาใส่ใน File Config ต้องสร้างเป็น SHA-512 ก่อนดูรายละเอียดได้ที่ [Generate SHA-512 for Password](./generate-sha512.md)
+
+  4. กำหนดให้ Install SSH-Server เพื่อให้เราสามารถ Connect Server ของเราผ่าน ssh protocal ได้
+
+     ```yaml
+     ssh:
+       install-server: true
+       authorized-keys:
+         - ${SSH-PUBLIC-KEY}
+       allow-pw: no
+     ```
+
+     หมายเหตุ: `${SSH-PUBLIC-KEY}` ใช้เพื่อให้เราสามารถ Secure Shell ไปที่ Server โดยไม่ต้องใช้ Password สามารถสร้างได้จาก `ssh-keygen` และปกติจะอยู่ใน `~/.ssh/id_rsa.pub`
+
+  5. กำหนดรายละเอียดของ `storage` และ `network` ซึ่งในกรณีของผมจะให้อ่าน ip จาก dhcp นะครับ แต่ก็สามารถระบุ ip ได้เลย โดยดูรายละเอียดเพิ่มเติมได้จาก [Netplan configuration examples](https://netplan.io/examples/)
+
+     ```yaml
+     storage:
+       layout:
+         name: lvm
+     network:
+       network:
+         version: 2
+         ethernets:
+           enp3s0f0:
+             dhcp4: yes
+             optional: yes
+           wlp2s0:
+             dhcp4: yes
+             optional: yes
+     ```
+
+     หมายเหตุ: `optional: yes` ใช้เพื่อลดเวลาตอน Boot Server ให้ไม่ต้องรอจน Network Start เสร็จ ก่อนถึงจะไป Step ต่อไป
+
+  6. นอกจากนั้น เรายังสั่งให้ Installer สามารถ Install Package ที่เราต้องการได้จาก Config นี้เลย (จำเป็นต่้องต่อ Internet ในการ Install)
+
+     ```yaml
+     packages:
+       - net-tools 
+       - wireless-tools
+       - network-manager
+       - wpasupplicant
+       - bcmwl-kernel-source
+     ```
+
+     หมายเหตุ: รายการ Package นี้ ได้มาจากสิ่งที่ต้อง Install แบบ Manual ใน [Manual Install into Mac-Mini](../manual.md)
+
+  7. สรุป หน้าตาของ File user-data ที่เราจะใช้สำหรับการ Install แบบ Automatic สามารถดูตัวอย่างได้ที่ [./autoinst/user-data](./autoinst/user-data)
+
+     ```yaml
+     #cloud-config
+     autoinstall:
+     version: 1
+     identity:
+       hostname: ubuntu-server
+       username: ubuntu
+       password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+     ssh:
+       install-server: true
+       authorized-keys:
+         - ${SSH-PUBLIC-KEY}
+       allow-pw: no
+     storage:
+       layout:
+         name: lvm
+     network:
+       network:
+         version: 2
+         ethernets:
+           enp3s0f0:
+             dhcp4: yes
+             optional: yes
+           wlp2s0:
+             dhcp4: yes
+             optional: yes
+     packages:
+       - net-tools 
+       - wireless-tools
+       - network-manager
+       - wpasupplicant
+       - bcmwl-kernel-source
+     ```
 
 ## Install Ubuntu Server
 
