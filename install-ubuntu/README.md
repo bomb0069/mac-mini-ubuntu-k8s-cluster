@@ -10,7 +10,9 @@
 
 - LAN Internet: เพื่อให้ Mac-Mini สามารถใช้ในการไป  Download  Package ต่าง ๆ ได้ (ในกรณีของผมใช้ Share ผ่าน Macbook Pro)
 - LAN Cable: เชื่อมต่อกับ Mac-Mini กับ Network
-- USB Stick: ใช้ในการสร้าง Ubuntu Installer Bootable Disk
+- USB Stick: ใช้ในการสร้าง Ubuntu Installer Bootable Disk ขนาดไม่ต่ำกว่า 2GB (ของผมใช้ 16 GB)
+- เครื่อง Macbook
+- Ubuntu ISO file: Download ได้จาก [Get Ubuntu](https://ubuntu.com/download/server) ซึ่งผมใช้ Manual Server Install และ Download version 20.04.3LTS
 
 ### Installation
 
