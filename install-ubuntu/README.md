@@ -8,10 +8,11 @@
 
 ### Pre-require
 
-- LAN Internet: เพื่อให้ Mac-Mini สามารถใช้ในการไป  Download  Package ต่าง ๆ มาติดตั้งในเครื่อง
-- LAN Cable: เชื่อมต่อกับ Mac-Mini กับ Network (ในกรณีของผมใช้ Share ผ่าน Macbook Pro)
+- LAN Internet: เพื่อให้ Mac-Mini สามารถใช้ในการไป  Download  Package ต่าง ๆ ได้ (ในกรณีของผมใช้ Share ผ่าน Macbook Pro)
+- LAN Cable: เชื่อมต่อกับ Mac-Mini กับ Network
 - USB Stick: ใช้ในการสร้าง Ubuntu Installer Bootable Disk
 
 ### Installation
 
 - [Manual Install into Mac-Mini](./manual.md)
+- [Automatic Installation for Ubuntu 20.04](./automatic-install/)
