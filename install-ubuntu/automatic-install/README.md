@@ -363,7 +363,7 @@
      BusName=fi.w1.wpa_supplicant1
      ExecStart=/sbin/wpa_supplicant -u -s -c /etc/wpa_supplicant.conf -i wlp2s0
      Restart=always
-     
+
      [Install]
      WantedBy=multi-user.target
      #Alias=dbus-fi.w1.wpa_supplicant1.service
@@ -381,7 +381,39 @@
      sudo systemctl enable wpa_supplicant.service
      ```
 
-  5. Restart Ubuntu Server to Take effect
+  5. Start dhclient at boot time to obtain a private IP address from DHCP server. This can be achieved by creating a systemd service unit for dhclient.
+
+     Edit `dhclient.service`
+
+     ```shell
+     sudo vi /etc/systemd/system/dhclient.service
+     ```
+
+     Put the following text into the file.
+
+     ```shell
+     [Unit]
+     Description= DHCP Client
+     Before=network.target
+     After=wpa_supplicant.service
+
+     [Service]
+     Type=forking
+     ExecStart=/sbin/dhclient wlp2s0 -v
+     ExecStop=/sbin/dhclient wlp2s0 -r
+     Restart=always
+     
+     [Install]
+     WantedBy=multi-user.target
+     ```
+
+     Save and close the file. Then enable this service.
+
+     ```shell
+     sudo systemctl enable dhclient.service
+     ```
+
+  6. Restart Ubuntu Server to Take effect
 
      ```shell
      sudo shutdown -r now
